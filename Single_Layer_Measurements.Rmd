@@ -308,7 +308,7 @@ cat("\n")
 print(stat_cols_2)
 
 ```
-As in normalized case, only one measure passes this test. Although is a different measure and quite interestingly is the only one we had from the FA layer
+Only one measure passes this test. Interestingly is the only one we had from the FA layer
 
 # Local_measures
 
@@ -395,7 +395,7 @@ cat("\n")
 
 
 ```
-We have alse a fewer measurement that pass the test than in normalized case.
+We have also fewer measurement that pass the test than in normalized case.
 
 
 ```{r}
@@ -419,7 +419,7 @@ cat("\n")
 print(stat_cols_loc_2)
 
 ```
-In non-normalized case we had almost 100 local graph measures that passed both statistical tests, but in this case we have a very limited number and almost all of the measures come from closeness centrality. Regarding the layers we have 4 measurements from FA layer and 3 from fMRI
+In non-normalized case we had almost 100 local graph measures that passed both statistical tests, but in this case we have a very limited number and almost all of the measures come from closeness centrality. Regarding the layers we have 6 measurements from FA layer and 3 from fMRI
 
 ## How many of each layer, how many of each measure and how many of each node
 

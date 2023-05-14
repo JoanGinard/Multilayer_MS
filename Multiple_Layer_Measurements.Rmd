@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 library(igraph)
 library(muxViz)
-
+library(ggplot2)
 source("helper_functions.R")
 source("GraphMeasurementFunctions.R")
 ```
@@ -132,7 +132,7 @@ Histogram of couplings strength, using the mean
 x <- unlist(layerCouplingStrength_list)
 x_df <- data.frame(values = x, controls_ms = clinical_data$controls_ms)
 
-ggplot2:: ggplot(x_df, aes(x = values, fill = controls_ms)) +
+ggplot(x_df, aes(x = values, fill = controls_ms)) +
   geom_histogram(bins = 30)+
   labs(x = "Values of weight connections", title = "Histogram of weights")
 
@@ -233,7 +233,7 @@ df_couplings <- data.frame(inter_layer_weight = inter_layer_weight,
 df_couplings
 ```
 
-As it seems all coupling lead to fair same results, though details might be different, we use the last result and save it to csv, using al 28 that are statistically significant to differentiate between HS and PwMS.
+As it seems all coupling lead to fair same results, though details might be different, we use the last result and save it to csv, using all 28 that are statistically significant to differentiate between HS and PwMS.
 
 
 Before check which elements we have
@@ -264,7 +264,7 @@ In next step we will check if we have correlations between those measurement
 
 
 ```{r, fig.height= 14, fig.height= 14}
-
+library(tidyverse)
 multi_layer_df <- cbind(clinical_data[, c("id", "controls_ms", "mstype", "age", "sex", "dd", "edss")],
                              df[ , stat_cols])
 
