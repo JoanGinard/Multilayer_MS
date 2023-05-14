@@ -1,0 +1,482 @@
+---
+title: "Single layer measurements"
+author: "Joan Ginard"
+date: '`r format(Sys.time(), "%d de %B, %Y")`'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(igraph)
+library(tidyverse)
+library(patchwork)
+
+
+source("helper_functions.R")
+source("GraphMeasurementFunctions.R")
+```
+In this R markdown file, we will execute necessary steps to apply single-layer graph measures to our data. 
+
+In fact, we will create two equal R markdown files.  This one operates normalizing the matrices, while the other without normalization.
+
+To incorporate multilayer measures, we must obtain single-layer graph measures from normalized ones.
+
+As in processing step we will use functions defined in "helper_functions.R". We will also use functions defined in "GraphMeasurementFunctions.R"
+
+
+# LOAD DATA
+
+
+```{r}
+
+#Folders
+dataDIR <- "data/"
+FADIR <- "FA_matrices_harm/"
+GMDIR <- "GM_matrices_c/"
+fMRIDIR <- "fMRI_matrices_c/"
+
+### clinical data
+
+clinic_file <- "clinic.csv"
+
+
+### vertex names
+names_file <- "mindboggle_ROIs.txt"
+
+```
+
+
+#Load clinical data
+```{r}
+
+clinical_data <- read.csv(file.path(dataDIR, clinic_file))[, -1] #with -1 we avoid loading index column
+
+clinical_data <- clinical_data[order(clinical_data$id),] #order by id, though not necessay we enforce it
+
+```
+
+#### CREATE LABELS
+
+```{r}
+
+clinical_data$controls_ms <- factor(clinical_data$controls_ms, 
+                                    levels = c(0,1), 
+                                    labels = c("HS", "PwMS"))
+clinical_data$sex <- factor(clinical_data$sex, 
+                            levels = c(0,1), 
+                            labels = c("Female", "Male"))
+clinical_data$mstype <- factor(clinical_data$mstype, 
+                               levels = c(-1, 0, 1, 2),
+                               labels = c("HS", "RRMS", "SPMS", "PPMS"))
+```
+
+
+#Load vertex names
+
+```{r}
+vertex_names <- read.table(file.path(dataDIR, names_file), skip = 1)[, 2]
+```
+
+
+#Load graphs with svd normalization
+
+If we aim to 'integrate' all layers into a single multi-layer measurement, it is essential to normalize the weights so they can be merged into a singular network. We will apply SVD normalization, as elucidated in Mandke, Meier et al. (2018). It is also interesting to point out it also used in Pontillo, Prados et al. 2022.
+
+```{r}
+FA_graphs <- load_graphs(FADIR, clinical_data, normalization = TRUE)
+GM_graphs <- load_graphs(GMDIR, clinical_data, normalization = TRUE)
+fMRI_graphs <- load_graphs(fMRIDIR, clinical_data, normalization = TRUE)
+
+```
+
+
+# GLOBAL Graph basic measurements
+
+We are measuring for each graph and each layer the following measures:
+
+1. Global Efficiency
+2. Mean Path Length
+3. Transitivity, global clustering
+4. Diameter
+5. Modularity
+6. Global Strength
+7. Density
+
+
+```{r}
+clinical_data <- add_global_graph_measures(clinical_data, FA_graphs, "FA")
+clinical_data <- add_global_graph_measures(clinical_data, GM_graphs, "GM")
+clinical_data <- add_global_graph_measures(clinical_data, fMRI_graphs, "fMRI")
+```
+
+We create a dataframe to summarise values. Later we will add p values
+
+```{r}
+
+#Preserve only numerical values 
+df_temp <- cbind(clinical_data[, "controls_ms"], clinical_data[, 27:ncol(clinical_data)])
+colnames(df_temp)[1] <- "controls_ms"
+
+df_summary <- data.frame(measurement = character(0),
+                          Mean_HS = numeric(0),
+                         sd_HS = numeric(0),
+                         Mean_PWMS = numeric(0),
+                         sd_PWMS = numeric(0))
+
+for(i in 2:ncol(df_temp)){
+  measurement <- colnames(df_temp)[i]
+  Mean_HS <- mean(df_temp[df_temp$controls_ms == "HS", i])
+  sd_HS <- sd(df_temp[df_temp$controls_ms == "HS", i])
+  
+  Mean_PWMS <- mean(df_temp[df_temp$controls_ms == "PwMS", i])
+  sd_PWMS <- sd(df_temp[df_temp$controls_ms == "PwMS", i])
+  
+  df_summary <- rbind( df_summary, data.frame(measurement = measurement,
+                                              Mean_HS = Mean_HS,
+                                              sd_HS = sd_HS,
+                                              Mean_PWMS = Mean_PWMS,
+                                              sd_PWMS = sd_PWMS))
+
+}
+
+head(df_summary)
+
+```
+
+
+
+
+# Boxplots comparing measures
+
+#FA
+
+```{r}
+cols_measures <-  c("controls", "diameter", "efficiency", "mean_path_length", "transitivity", "modularity", "strength", "density" )
+
+df <- clinical_data[, grepl("FA_", names(clinical_data))]
+
+df <- cbind(clinical_data$controls_ms, df)
+colnames(df) <- cols_measures
+
+individual_boxplot <- function(df, column_name){
+  
+  p <- df %>% ggplot(aes(y = df[, c(column_name)] , fill =  controls))+
+  geom_boxplot()+
+  xlab(column_name)+
+  ylab("Values")+
+  scale_fill_discrete(name = "CONTROL", labels = c("HS", "PwMS"))
+  return(p)
+}
+p1 <- individual_boxplot(df, "diameter")
+p2 <- individual_boxplot(df, "efficiency")
+p3 <- individual_boxplot(df, "mean_path_length")
+p4 <- individual_boxplot(df, "transitivity")
+p5 <- individual_boxplot(df, "modularity")
+p6 <- individual_boxplot(df, "strength")
+p7 <- individual_boxplot(df, "density")
+
+p1 + p2 + p3 + p4 +p5 + p6 +p7 +
+  plot_layout(ncol = 3, nrow = 3, guides = "collect")
+
+
+```
+If we compare this case to the non-normalized one, we can appreciate differences between the two cases are minimal in most measurements.
+
+
+#GM
+
+
+```{r}
+
+df <- clinical_data[, grepl("GM_", names(clinical_data))]
+
+df <- cbind(clinical_data$controls_ms, df)
+colnames(df) <- cols_measures
+
+p1 <- individual_boxplot(df, "diameter")
+p2 <- individual_boxplot(df, "efficiency")
+p3 <- individual_boxplot(df, "mean_path_length")
+p4 <- individual_boxplot(df, "transitivity")
+p5 <- individual_boxplot(df, "modularity")
+p6 <- individual_boxplot(df, "strength")
+p7 <- individual_boxplot(df, "density")
+
+p1 + p2 + p3 + p4 +p5 + p6 +p7 +
+  plot_layout(ncol = 3, nrow = 3, guides = "collect")
+
+
+
+```
+As it also happened with non-normalized case, in this scenario we have four measurement that virtually equal and constant for both HS and PwMs.
+
+#fMRI
+
+```{r}
+df <- clinical_data[, grepl("fMRI_", names(clinical_data))]
+
+df <- cbind(clinical_data$controls_ms, df)
+colnames(df) <- cols_measures
+
+p1 <- individual_boxplot(df, "diameter")
+p2 <- individual_boxplot(df, "efficiency")
+p3 <- individual_boxplot(df, "mean_path_length")
+p4 <- individual_boxplot(df, "transitivity")
+p5 <- individual_boxplot(df, "modularity")
+p6 <- individual_boxplot(df, "strength")
+p7 <- individual_boxplot(df, "density")
+
+p1 + p2 + p3 + p4 +p5 + p6 +p7 +
+  plot_layout(ncol = 3, nrow = 3, guides = "collect")
+
+```
+
+In this case, normalized and non normalized situations exhibit similar behaviour. It is worth noting that there seem to be more outliers (or at least more "extreme") in graph efficiency
+
+#Statistical measures 
+
+## Normality and Statistical difference
+Before we assess the statistical differences in our measurements, it's important to determine if the data distribution is normal. While we could use a QQ-plot for this purpose, due to the large number of variables (7 graph measures across 3 layers), we will utilize the Shapiro-Wilk test. Following this, we will examine whether there's a statistically significant difference between groups. Depending on the normality of the variables, we will use either the t-test or the Mann-Whitney U test.
+
+In this step we only use statistical differences between control and PwMS
+
+```{r}
+# Statistical test defined in helper_functions.R
+vector_p <- c()
+cols <- colnames(clinical_data[, c(27:47)])
+
+for(col in cols){
+  res <- statistical_test(clinical_data, col)
+  vector_p <- c(vector_p, res)
+}
+
+
+df_summary$p.value <- vector_p
+stat_cols <- df_summary$measurement[df_summary$p.value < 0.05]
+cat(paste("We have", length(stat_cols),"measures that show statistically significant differences" ))
+cat("\n")
+cat("\n")
+print(stat_cols)
+
+```
+In this normalized case, we have different fewer of statistically different measurements, and one measure (diameter of fMRI layer)
+is not present in the most populated case of non-normalized graphs. It is worth noting that only one global measure in the list is from FA layer. We also do not have any measurement from GM layer as in the non-normalized case.
+
+We have all our stats in 1 dataframe
+
+```{r}
+head(df_summary)
+```
+Now, we examine correlations between the mesurements that have passed the test
+
+```{r}
+
+correlations <- clinical_data %>% select(all_of(stat_cols)) %>% cor()
+
+corrplot::corrplot(correlations, method = 'number')
+
+
+```
+In this case correlations (except one) do not seem as strong as in the normalized case.
+
+## Pairwise t test using Bonferroni
+In our clinical data, PwMS are categorized into multiple groups (mstype). In this scenario, we can use the t-test with Bonferroni correction to determine if any of the measures also exhibit differences.
+
+We will exclusively examine differences between MS types, excluding HS from this analysis, as we will only examine columns that demonstrate statistical differences
+
+
+```{r}
+#We apply Bonferroni correction to each column
+
+pairwise_t_tests_list <- lapply(stat_cols, function(x) {
+  pairwise.t.test(clinical_data[[x]], clinical_data$mstype, p.adjust.method = "bonferroni")
+})
+
+stat_cols_2 <- c()
+for(i in seq_along(stat_cols)){
+  p_values <- pairwise_t_tests_list[[i]]$p.value
+  if(p_values[5] < 0.05 | p_values[6] < 0.05 | p_values[9] < 0.05){ #Only check differences between mstypes
+    stat_cols_2 <- c(stat_cols_2, stat_cols[i])
+  }
+}
+
+cat(paste("We have", length(stat_cols_2),"measures that show statistically significant differences between types" ))
+cat("\n")
+cat("\n")
+print(stat_cols_2)
+
+```
+As in normalized case, only one measure passes this test. Although is a different measure and quite interestingly is the only one we had from the FA layer
+
+# Local_measures
+
+Local measures we are performing are:
+
+1. Efficiency
+2. Closeness Centrality
+3. Strength
+
+(Clustering ---> We do not apply this because none passes the statistical test)
+
+It may seem that there are less measurements than in global case, but it is important to remember we will have each measurement for all 76 nodes.
+Se we will have 76 nodes x 3 measurments x 3 layers
+
+
+
+
+```{r}
+#We strore data in an specific dataframe
+cli_data_loc <- clinical_data[, c("controls_ms", "mstype")]
+
+cli_data_loc <-add_local_graph_measures(cli_data_loc, FA_graphs, "FA")
+cli_data_loc <-add_local_graph_measures(cli_data_loc, GM_graphs, "GM")
+cli_data_loc <-add_local_graph_measures(cli_data_loc, fMRI_graphs, "fMRI")
+
+```
+
+Summarise values
+
+
+```{r}
+
+#Preserve only numerical values 
+df_temp <- cli_data_loc
+df_temp$mstype <- NULL
+
+df_summary_loc <- data.frame(measurement = character(0),
+                          Mean_HS = numeric(0),
+                         sd_HS = numeric(0),
+                         Mean_PWMS = numeric(0),
+                         sd_PWMS = numeric(0))
+
+for(i in 2:ncol(df_temp)){
+  measurement <- colnames(df_temp)[i]
+  Mean_HS <- mean(df_temp[df_temp$controls_ms == "HS", i])
+  sd_HS <- sd(df_temp[df_temp$controls_ms == "HS", i])
+  
+  Mean_PWMS <- mean(df_temp[df_temp$controls_ms == "PwMS", i])
+  sd_PWMS <- sd(df_temp[df_temp$controls_ms == "PwMS", i])
+  
+  df_summary_loc <- rbind( df_summary_loc, data.frame(measurement = measurement,
+                                              Mean_HS = Mean_HS,
+                                              sd_HS = sd_HS,
+                                              Mean_PWMS = Mean_PWMS,
+                                              sd_PWMS = sd_PWMS))
+
+
+}
+
+```
+
+## STATISTICAL MEASURES
+We proceed as we did before
+
+
+```{r}
+vector_p <- c()
+cols <- colnames(cli_data_loc[, c(3:ncol(cli_data_loc))])
+
+for(col in cols){
+  res <- statistical_test(cli_data_loc, col)
+  vector_p <- c(vector_p, res)
+}
+
+
+df_summary_loc$p.value <- vector_p
+stat_cols_loc <- df_summary_loc$measurement[df_summary_loc$p.value < 0.05]
+
+
+cat(paste("We have", length(stat_cols_loc),"measures that show statistically significant differences between types" ))
+cat("\n")
+cat("\n")
+
+
+
+```
+We have alse a fewer measurement that pass the test than in normalized case.
+
+
+```{r}
+#We apply Bonferroni correction to each column
+
+pairwise_t_tests_list <- lapply(stat_cols_loc, function(x) {
+  pairwise.t.test(cli_data_loc[[x]], cli_data_loc$mstype, p.adjust.method = "bonferroni")
+})
+
+stat_cols_loc_2 <- c()
+for(i in seq_along(stat_cols_loc)){
+  p_values <- pairwise_t_tests_list[[i]]$p.value
+  if(p_values[5] < 0.05 | p_values[6] < 0.05 | p_values[9] < 0.05){
+    stat_cols_loc_2 <- c(stat_cols_loc_2, stat_cols_loc[i])
+  }
+}
+
+cat(paste("We have", length(stat_cols_loc_2),"measures that show statistically significant differences between types" ))
+cat("\n")
+cat("\n")
+print(stat_cols_loc_2)
+
+```
+In non-normalized case we had almost 100 local graph measures that passed both statistical tests, but in this case we have a very limited number and almost all of the measures come from closeness centrality. Regarding the layers we have 4 measurements from FA layer and 3 from fMRI
+
+## How many of each layer, how many of each measure and how many of each node
+
+```{r}
+
+split_names <- lapply(stat_cols_loc_2, function(x) strsplit(x, split = "_")[[1]])
+
+# Store each part in a separate vector
+layer_vector <- sapply(split_names, `[[`, 1)
+measure_vector <- sapply(split_names, `[[`, 2)
+node_vector <- sapply(split_names, `[[`, 3)
+
+
+table(layer_vector)
+
+table(measure_vector)
+
+#head(sort(table(node_vector), decreasing = TRUE), n = 25)
+
+```
+
+ 
+# Final dataframe
+
+In final df we are going to include 9 global measures which presented statistically significant between HS and PwMS and 41 local measures which passed bonferroni. 
+
+```{r}
+#df_glob <- clinical_data[ , stat_cols]
+#df_loc <- cli_data_loc[, stat_cols_loc_2]
+#single_layer_df <- clinical_data[, c("id", "control_ms", "mstype", "age", "sex", "dd", "edss")]
+single_layer_df <- bind_cols(clinical_data[, c("id", "controls_ms", "mstype", "age", "sex", "dd", "edss")],
+                             clinical_data[ , stat_cols],
+                             cli_data_loc[, stat_cols_loc_2])
+
+```
+
+```{r}
+write.table(single_layer_df, file = file.path(dataDIR, "single_layer.csv"), sep = ",", quote = FALSE, row.names = FALSE )
+```
+
+## SAVE SUMMARY TO EXCEL
+
+```{r}
+wb <- openxlsx::createWorkbook()
+
+openxlsx::addWorksheet(wb, "Gl_summary")
+openxlsx::writeData(wb, "Gl_summary", df_summary)
+
+openxlsx::addWorksheet(wb, "loc_summary")
+openxlsx::writeData(wb, "loc_summary", df_summary_loc)
+
+openxlsx::saveWorkbook(wb, file = paste0(dataDIR, "summary_single_layers.xlsx"), overwrite = TRUE)
+
+```
+
+
+
+
+
+
