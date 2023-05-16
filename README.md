@@ -17,5 +17,5 @@ We describe main files and the order intended to execute them.
 6. **Separate_layers_results.ipynb** --> Notebook to apply machine learning models to graph measurements from "Separate_layers.Rmd"
 7. **Mutilayer_network_results.ipynb** --> Almost same notebook as (6) but applying models to single and mutlilayer mesaurements of a multilayer network (From "Single_Layer_Measurements.Rmd" and "Multiple_Layer_Measurements.Rmd")
 
-## HTML files
-Files corresponding to outputs of R markdowns and jupyter notebooks
+## HTML folder
+HTML Files corresponding to outputs of R markdowns and jupyter notebooks
