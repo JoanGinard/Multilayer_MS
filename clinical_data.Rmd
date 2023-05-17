@@ -1,0 +1,225 @@
+---
+title: "Clinical data"
+author: "Joan Ginard"
+date: '`r format(Sys.time(), "%d de %B, %Y")`'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(tidyverse)
+```
+
+
+# LOAD DATA
+
+```{r}
+
+
+#Folders
+dataDIR <- "data/"
+
+### clinical data
+clinic_file <- "clinic.csv"
+
+### clinical data
+clinical_data <- read.csv(file.path(dataDIR, clinic_file))[, -1] #with -1 we avoid loading index column
+
+
+
+
+```
+
+## DATA
+
+#### CREATE LABELS
+
+```{r}
+
+clinical_data$controls_ms <- factor(clinical_data$controls_ms, 
+                                    levels = c(0,1), 
+                                    labels = c("HS", "PwMS"))
+clinical_data$sex <- factor(clinical_data$sex, 
+                            levels = c(0,1), 
+                            labels = c("Female", "Male"))
+clinical_data$mstype <- factor(clinical_data$mstype, 
+                               levels = c(-1, 0, 1, 2),
+                               labels = c("HS", "RRMS", "SPMS", "PPMS"))
+```
+
+
+####AGE
+```{r}
+
+age_mean <- mean(clinical_data$age)
+age_std <- sd(clinical_data$age)
+
+age_control_mean <- mean(clinical_data$age[clinical_data$controls_ms == 0])
+age_control_std <- sd(clinical_data$age[clinical_data$controls_ms == 0])
+
+
+age_MS_mean <- mean(clinical_data$age[clinical_data$controls_ms == 1])
+age_MS_std <- sd(clinical_data$age[clinical_data$controls_ms == 1])
+
+clinical_data %>% 
+  group_by(controls_ms) %>%
+  summarise(age_mean = mean(age),
+            age_std = sd(age))
+
+```
+
+```{r}
+ggplot(clinical_data, aes(x = age, fill = as.factor(controls_ms))) +
+  geom_histogram(position = "identity", binwidth =3, color = "black", alpha = 0.6)+
+  labs(fill = "")+
+  ggtitle("AGE DISTRIBUTION by HS/PwMS")
+```
+```{r}
+clinical_data %>% 
+  group_by(mstype) %>%
+  summarise(age_mean = mean(age),
+            age_std = sd(age))
+```
+
+```{r}
+ggplot(clinical_data, aes(x = age, fill = as.factor(mstype))) +
+  geom_histogram(position = "identity", binwidth =3, color = "black", alpha = 0.6)+
+  #scale_fill_discrete(labels=c("HS", "PwMS"))+
+  labs(fill = "")+
+  ggtitle("AGE DISTRIBUTION by MSTYPE")
+
+```
+
+
+
+
+### SEX
+
+
+```{r}
+total <- length(clinical_data$sex)
+female <- length(clinical_data$sex[clinical_data$sex == "Female"])
+
+total_control <- length(clinical_data$sex[clinical_data$controls_ms == "HS"])
+female_control <- length(clinical_data$sex[clinical_data$sex == "Female" & clinical_data$controls_ms == "HS"])
+female_control_perc <- 100*female_control/total_control
+
+
+total_MS <- length(clinical_data$sex[clinical_data$controls_ms == "PwMS"])
+female_MS <- length(clinical_data$sex[clinical_data$sex == "Female" & clinical_data$controls_ms == "PwMS"])
+female_MS_perc <- 100*female_MS/total_MS
+
+
+print(table(clinical_data$sex, clinical_data$controls_ms))
+
+df1 <- clinical_data %>% 
+  filter(controls_ms == "HS") %>%
+  group_by(sex) %>%
+  summarise(total_HS = n(),
+            perc_HS = round(100*n()/total_control, 2))
+
+df2 <- clinical_data %>% 
+  filter(controls_ms == "PwMS") %>%
+  group_by(sex) %>%
+  summarise(total_PwMS = n(),
+            perc_PwMS = round(100*n()/total_MS, 2))
+
+bind_cols(df1, df2[,-1])
+
+```
+
+
+
+```{r}
+ggplot(clinical_data, aes(x = sex, fill = as.factor(controls_ms))) +
+  geom_bar( color = "black")+
+  #scale_fill_discrete(labels=c("HS", "PwMS"))+
+  labs(fill = "")+
+  ggtitle("SEX DISTRIBUTION by HS/PwMS")
+```
+
+```{r}
+
+df1 <- clinical_data %>% 
+  filter(mstype== "HS") %>%
+  group_by(sex) %>%
+  summarise(total_HS = n())
+
+
+df2 <- clinical_data %>% 
+  filter(mstype == "RRMS") %>%
+  group_by(sex) %>%
+  summarise(total_RRMS = n())
+
+df3 <- clinical_data %>% 
+  filter(mstype == "SPMS" ) %>%
+  group_by(sex) %>%
+  summarise(total_SPMS = n())
+
+df4 <- clinical_data %>% 
+  filter(mstype == "PPMS") %>%
+  group_by(sex) %>%
+  summarise(total_PPMS = n())
+
+bind_cols(df1,df2[, -1],df3[, -1],df4[, -1])
+```
+
+
+```{r}
+ggplot(clinical_data, aes(x = sex, fill = mstype)) +
+  geom_bar( color = "black")+
+  #scale_fill_discrete(labels=c("HS", "PwMS"))+
+  labs(fill = "")+
+  ggtitle("SEX DISTRIBUTION by MSTYPE")
+```
+
+### DISEASE DURATION
+
+```{r}
+disea_dur_mean <- mean(clinical_data$dd)
+
+disea_dur_std <- sd(clinical_data$dd)
+
+```
+
+
+
+```{r}
+df <- clinical_data[clinical_data$mstype != "HS",]
+ggplot(df, aes(x = dd, fill = mstype)) +
+  geom_histogram(binwidth =3, color = "black")+
+  #scale_fill_discrete(labels=c("HS", "PwMS"))+
+  labs(fill = "")+
+  ggtitle("DISEASE DURATION DISTRIBUTION")+
+  xlab("disease duration")
+
+```
+### EDSS
+
+```{r}
+
+median_edss <- median(clinical_data$edss[clinical_data$controls_ms != "HS"])
+mean_edss <- mean(clinical_data$edss[clinical_data$controls_ms != "HS"])
+min_edss<- min(clinical_data$edss[clinical_data$controls_ms != "HS"])
+max_edss <- max(clinical_data$edss[clinical_data$controls_ms != "HS"])
+sd_edss <- sd(clinical_data$edss[clinical_data$controls_ms != "HS"])
+
+print(mean_edss)
+print(sd_edss)
+```
+
+```{r}
+df <- clinical_data[clinical_data$mstype != "HS",]
+ggplot(df, aes(x = mstype, y = edss, color = mstype)) +
+  geom_point()+
+  theme(legend.position = "none")+
+  ggtitle("EDSS by MSTYPE")
+
+```
+
+
+
