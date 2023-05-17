@@ -1,0 +1,348 @@
+---
+title: "Multiple layer measurements 2 LAYERS"
+author: "Joan Ginard"
+date: '`r format(Sys.time(), "%d de %B, %Y")`'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(igraph)
+library(muxViz)
+library(ggplot2)
+source("helper_functions.R")
+source("GraphMeasurementFunctions.R")
+```
+
+In this R markdown file, we will execute necessary steps to apply multi-layer graph measures to our data, **considering only FA and fMRI layers**.
+It is exactly equal to R markdown with three layers to facilitate comparison
+
+As in processing step we will use functions defined in "helper_functions.R". We will also use functions defined in "GraphMeasurementFunctions.R"
+
+
+# LOAD DATA
+We proceed in a similar way to the single layer R markdown files
+
+```{r}
+
+#Folders
+dataDIR <- "data/"
+FADIR <- "FA_matrices_harm/"
+fMRIDIR <- "fMRI_matrices_c/"
+
+### clinical data
+
+clinic_file <- "clinic.csv"
+
+
+### vertex names
+names_file <- "mindboggle_ROIs.txt"
+
+```
+
+#Load clinical data
+
+```{r}
+
+clinical_data <- read.csv(file.path(dataDIR, clinic_file))[, -1] #with -1 we avoid loading index column
+
+clinical_data <- clinical_data[order(clinical_data$id),] #order by id, though not necessay we enforce it
+
+```
+
+#### CREATE LABELS
+
+```{r}
+
+clinical_data$controls_ms <- factor(clinical_data$controls_ms, 
+                                    levels = c(0,1), 
+                                    labels = c("HS", "PwMS"))
+clinical_data$sex <- factor(clinical_data$sex, 
+                            levels = c(0,1), 
+                            labels = c("Female", "Male"))
+clinical_data$mstype <- factor(clinical_data$mstype, 
+                               levels = c(-1, 0, 1, 2),
+                               labels = c("HS", "RRMS", "SPMS", "PPMS"))
+```
+
+#Load vertex names
+
+```{r}
+vertex_names <- read.table(file.path(dataDIR, names_file), skip = 1)[, 2]
+
+# FA_vertex_names <- paste0("FA_", vertex_names)
+# GM_vertex_names <- paste0("GM_", vertex_names)
+# fMRI_vertex_names <- paste0("fMRI_", vertex_names)
+# layered_vertex_names <- c(FA_vertex_names, GM_vertex_names, fMRI_vertex_names)
+```
+
+#Load matrices We import as matrix form, as we will need it for to build suparadjacency matrix in muxViz
+
+```{r}
+FA_matrices <- load_as_matrix(dataDIR, FADIR)
+fMRI_matrices <- load_as_matrix(dataDIR, fMRIDIR)
+
+```
+
+# SVD Normalization
+
+We apply SVD normalization as explained in Mandke, Meier et al. 2018.
+
+```{r}
+
+FA_svd <- lapply(FA_matrices, svd_normalization)
+fMRI_svd <- lapply(fMRI_matrices, svd_normalization)
+```
+
+# Multilayer graphs
+
+In this case we will use a multiplex network where all nodes have self-connections and only self-connections across layers. It is important to to note we assume all layers are interconnected.
+
+### Combine single layer graphs
+
+Now we have 3 lists of matrices, one for each layer, and we need one list where each element is itself a list of three matrices one from each layer.
+
+As we merge the lists, we calculate the mean of all connections across the three matrices. According to the literature (Mandke, Meier et al. 2018), we could utilize this mean as the connection weight between layers in a multiplex network.
+
+```{r}
+
+NodeTensor <- list()
+NodeTensor_list <- list()
+layerCouplingStrength_list <- list()
+for(i in seq_along(FA_matrices)){
+  NodeTensor<- list(FA_svd[[i]], fMRI_svd[[i]]) #Make list element combining on matrx from each layer
+  NodeTensor_list[[i]] <- NodeTensor  # add element to a list
+  
+  all_values <- c(FA_svd[[i]], fMRI_svd[[i]])
+
+  layerCouplingStrength_list[[i]] <- mean(all_values[all_values != 0]) #Mean of weights of the three layers.
+}
+
+
+```
+
+Histogram of couplings strength, using the mean
+
+```{r}
+x <- unlist(layerCouplingStrength_list)
+x_df <- data.frame(values = x, controls_ms = clinical_data$controls_ms)
+
+ggplot(x_df, aes(x = values, fill = controls_ms)) +
+  geom_histogram(bins = 30)+
+  labs(x = "Values of weight connections", title = "Histogram of weights")
+
+
+
+```
+
+We observe that values are clustered between 0.145 and 0.155 (with one notable exemption). This suggests that differences are minimal (even when considering both HS and PwMS), and we can apply same weight to all subjects.
+
+
+## Coupling strength value
+We will assign different weights for interlayer connections and conduct statistical tests, similar to those performed on the single layers. We will record the number of measurements that pass these tests and select the multiplex network with the highest number of successful test results.
+
+Multilayer measurements we will apply are all local as global measurement lead to no significant results. 
+
+Mutlilayer measurements are:
+
+1. MultiPageRank centrality
+2. Sum of total Multi-Strength, De Domenico, M., Set al. (2013)
+3. Closeness Versatility (labeled as MultiPath)
+
+
+Check which value of strength give us more diference between multilayer graphs measuments
+
+```{r}
+#Couplings we will test
+couplings <- c(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0) 
+
+
+inter_layer_weight <- c()
+length_stats <- c()
+length_bonferroni <- c()
+Layers <- 2
+Nodes <- 76
+
+# Iterate over a list of couplings 
+for(coupling in couplings){
+  inter_layer_weight <- c(inter_layer_weight, coupling) #variable to keep track of couplings
+  layerCouplingStrength <- coupling # Inter-layer weight links, we consider only multiplex connextion
+  networkOfLayersType <- "categorical" #all layers are connected to each other
+
+  layerTensor <- BuildLayersTensor(Layers=Layers, OmegaParameter=layerCouplingStrength, MultisliceType=networkOfLayersType)
+
+
+
+  multilayer_graphs <- list()
+  
+  #Build multilayer graphs (via create a supra-adjacency matrix for each)
+  for(i in seq_along(NodeTensor_list)){
+    multilayer_graphs[[i]] <- BuildSupraAdjacencyMatrixFromEdgeColoredMatrices(NodeTensor_list[[i]], 
+                                                                             layerTensor, 
+                                                                             Layers, 
+                                                                             Nodes)
+  }
+
+  #Obtain multilayer local measures
+  df <- clinical_data
+
+  df <- add_multi_graph_measures(df, multilayer_graphs) # Function defined in GraphMeasurementFunctions.R
+
+ 
+
+  cols <- colnames(df[, c(27:ncol(df))])
+  vector_p <- c()
+  for(col in cols){
+    res <- statistical_test(df, col)
+    vector_p <- c(vector_p, res)
+  }
+  stat_cols <- cols[vector_p < 0.05]
+  
+
+  length_stats <- c(length_stats, length(stat_cols))  
+
+  pairwise_t_tests_list <- lapply(stat_cols, function(x) {
+    pairwise.t.test(df[[x]], df$mstype, p.adjust.method = "bonferroni")
+  })
+
+stat_cols_2 <- c()
+for(i in seq_along(stat_cols)){
+  p_values <- pairwise_t_tests_list[[i]]$p.value
+  if(p_values[5] < 0.05 | p_values[6] < 0.05 | p_values[9] < 0.05){
+    stat_cols_2 <- c(stat_cols_2, stat_cols[i])
+  }
+}
+  length_bonferroni <- c(length_bonferroni, length(stat_cols_2))  
+  
+}
+
+```
+
+Values collected are presented in following dataframe
+```{r}
+
+df_couplings <- data.frame(inter_layer_weight = inter_layer_weight,
+                          statistical_significant = length_stats,
+                          with_bonferroni = length_bonferroni)
+
+df_couplings
+```
+
+As it seems all coupling lead to fair same results, though details might be different, we use the last result and save it to csv, using all 50 that are statistically significant to differentiate between HS and PwMS.
+
+Comparing to three layers, we have more statistical significant features, but only 2 passes bonferroni test, compared to 4 in three layers.
+
+
+
+## How many of each layer, how many of each measure and how many of each node
+```{r}
+
+split_names <- lapply(stat_cols, function(x) strsplit(x, split = "_")[[1]])
+
+# Store each part in a separate vector
+measure_vector <- sapply(split_names, `[[`, 1)
+node_vector <- sapply(split_names, `[[`, 2)
+
+
+table(measure_vector)
+
+head(sort(table(node_vector), decreasing = TRUE), n = 25)
+
+```
+We have a fair amount of each measurement that are statistically significant.But if we take a look at those who passed bonferroni we can see only MultiPageRank measurements
+
+```{r}
+print(stat_cols_2)
+```
+In next step we will check if we have correlations between those measurement
+
+
+```{r, fig.height= 14, fig.height= 14}
+library(tidyverse)
+multi_layer_df <- cbind(clinical_data[, c("id", "controls_ms", "mstype", "age", "sex", "dd", "edss")],
+                             df[ , stat_cols])
+
+correlations <- multi_layer_df %>% select(all_of(stat_cols)) %>% cor()
+
+corrplot::corrplot(correlations, method = 'number', tl.col = "black", addCoef.col = 1,  
+         number.cex = 0.8)
+
+
+```
+With few exceptions, correlations between measurements are not specially high.
+Those we pass bonferroni test, are not highly correlated either.
+
+```{r}
+
+multi_layer_df <- cbind(clinical_data[, c("id", "controls_ms", "mstype", "age", "sex", "dd", "edss")],
+                             df[ , stat_cols])
+
+correlations <- multi_layer_df %>% select(all_of(stat_cols_2)) %>% cor()
+
+corrplot::corrplot(correlations, method = 'number', tl.col = "black")
+
+
+```
+
+
+```{r}
+
+write.table(multi_layer_df, file = file.path(dataDIR, "multi_2layer.csv"), sep = ",", quote = FALSE, row.names = FALSE )
+```
+
+Summarise Results
+
+```{r}
+
+#Preserve only numerical values 
+df_temp <- cbind(df[, "controls_ms"], df[, 27:ncol(df)])
+colnames(df_temp)[1] <- "controls_ms"
+
+df_summary <- data.frame(measurement = character(0),
+                          Mean_HS = numeric(0),
+                         sd_HS = numeric(0),
+                         Mean_PWMS = numeric(0),
+                         sd_PWMS = numeric(0))
+
+for(i in 2:ncol(df_temp)){
+  measurement <- colnames(df_temp)[i]
+  Mean_HS <- mean(df_temp[df_temp$controls_ms == "HS", i])
+  sd_HS <- sd(df_temp[df_temp$controls_ms == "HS", i])
+  
+  Mean_PWMS <- mean(df_temp[df_temp$controls_ms == "PwMS", i])
+  sd_PWMS <- sd(df_temp[df_temp$controls_ms == "PwMS", i])
+  
+  df_summary <- rbind( df_summary, data.frame(measurement = measurement,
+                                              Mean_HS = Mean_HS,
+                                              sd_HS = sd_HS,
+                                              Mean_PWMS = Mean_PWMS,
+                                              sd_PWMS = sd_PWMS))
+
+}
+
+df_summary$p.values <- vector_p
+
+```
+
+
+
+## SAVE SUMMARY TO EXCEL
+
+```{r}
+wb <- openxlsx::createWorkbook()
+
+
+openxlsx::addWorksheet(wb, "multilayer_meas")
+openxlsx::writeData(wb, "multilayer_meas", df_summary)
+
+openxlsx::saveWorkbook(wb, file = paste0(dataDIR, "summary_multi_2layer.xlsx"), overwrite = TRUE)
+
+```
+
+
+
+
+
