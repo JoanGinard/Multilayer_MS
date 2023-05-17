@@ -3,8 +3,8 @@ Multilayer approach to diagnose and classify Multiple Sclerosis phenotypes using
 
 ## "HELPER" FILES
 R files where some functions are defined:
-1. helper_functions.R --> script where are defined some functions used in all R Markdowns files expcept functions for graph measurements
-2. GraphMeasurements.R --> script where graph measurement functions are defined.
+1. **helper_functions.R** --> script where are defined some functions used in all R Markdowns files expcept functions for graph measurements
+2. **GraphMeasurements.R** --> script where graph measurement functions are defined.
 
 ## MAIN FILES
 We describe main files and the order intended to execute them.
@@ -16,6 +16,7 @@ We describe main files and the order intended to execute them.
 5. **Multiple_Layer_Measurements.Rmd** --> Construct a multiplex graph and perform multiple layer measurements, includind selecting weights for inter-layer connections
 6. **Separate_layers_results.ipynb** --> Notebook to apply machine learning models to graph measurements from "Separate_layers.Rmd"
 7. **Mutilayer_network_results.ipynb** --> Almost same notebook as (6) but applying models to single and mutlilayer mesaurements of a multilayer network (From "Single_Layer_Measurements.Rmd" and "Multiple_Layer_Measurements.Rmd")
+8. **clinical_data.Rmd** --> file where data from subjects is summarized: age, sex, edss, dd.
 
 ## HTML folder
 HTML Files corresponding to outputs of R markdowns and jupyter notebooks
