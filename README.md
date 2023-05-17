@@ -25,6 +25,8 @@ As it GM layers does not seem to yield a great deal of information we reproduce 
 11. **Multiple_2Layer_Measurements.Rmd** --> Same R markdown file as *Multiple_Layer_Measurements.Rmd* but using only 2 layers
 12. **Mutilayer_network_2layer_results.ipynb** --> Same notebook as *Mutilayer_network_results.ipynb* but using only 2 layers
 
+### OTHER
+13. **Feature importance** --> notebook to review feature importance from Random Forest and XGBoost models (UNFINISHED)
 
 ## HTML folder
 HTML Files corresponding to outputs of R markdowns and jupyter notebooks
