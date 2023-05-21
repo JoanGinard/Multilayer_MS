@@ -1,0 +1,79 @@
+---
+title: "SVD Normalization comparison"
+author: "Joan Ginard"
+date: '`r format(Sys.time(), "%d de %B, %Y")`'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(igraph)
+library(tidyverse)
+library(patchwork)
+
+
+source("helper_functions.R")
+
+```
+In this R markdown file, we will compare distribution of weight before and after normalising using SVD 
+
+
+
+
+# LOAD DATA
+
+
+```{r}
+
+#Folders
+dataDIR <- "data/"
+FADIR <- "FA_matrices_harm/"
+GMDIR <- "GM_matrices_c/"
+fMRIDIR <- "fMRI_matrices_c/"
+
+FA_matrices <- load_as_matrix(dataDIR, FADIR)
+GM_matrices <- load_as_matrix(dataDIR, GMDIR)
+fMRI_matrices <- load_as_matrix(dataDIR, fMRIDIR)
+
+FA_svd <- lapply(FA_matrices, svd_normalization)
+GM_svd <- lapply(GM_matrices, svd_normalization)
+fMRI_svd <- lapply(fMRI_matrices, svd_normalization)
+
+```
+
+```{r}
+p1 <- range_values(FA_matrices)
+p2 <- range_values(GM_matrices)
+p3 <- range_values(fMRI_matrices)
+p <- p1+p2+p3 + plot_layout(ncol = 3, nrow = 1)
+p
+```
+```{r}
+
+p4 <- range_values(FA_svd)
+p5 <- range_values(GM_svd)
+p6 <- range_values(fMRI_svd)
+p <- p4+p5+p6 + plot_layout(ncol = 3, nrow = 1)
+p
+
+```
+
+```{r}
+p11 <- (p1 | p2 | p3) +
+  plot_annotation(title = "A) Before SVD normalization") &
+  theme(plot.title = element_text(hjust = 0.5), plot.tag = element_text(size = 15, face = "bold"))
+
+p12<- (p4 | p5 | p6) +
+  plot_annotation(title = "B) After SVD normalization") &
+  theme(plot.title = element_text(hjust = 0.5), plot.tag = element_text(size = 15, face = "bold"))
+
+p <- wrap_elements(p11) / wrap_elements(p12)
+
+ggsave(filename = "images/all_hist_weights_SVD.png", plot = p, width = 10, height = 7, dpi = 300)
+
+p
+```
+

@@ -5,20 +5,26 @@
 ## INPUT csv_append -> append to the patient id in matrices file name EX: "_r_matrix.csv" --> "patientID_r_matrix.csv"
 ## INPUT clinical_data -> dataframe with, at least, an id variable with patients id
 
-filter_patients <- function(orig_matrices_dir, csv_append, clinical_data){
+filter_patients <- function(orig_matrices_dir, csv_append, clinical_data, verbose = T){
   list_files <- list_of_files(dataDIR, orig_matrices_dir) #file list from folder --> function defined in this script
   # cReate dataframe with patients IDs and filenames associated with id
   df <- data.frame(clinical_data$id)
   df$name <- paste0(df$clinical_data.id, csv_append)
-  
-  cat(paste("Cheking data...\n"))
-  cat(paste("Matrices without patients...\n"))  
-  discarded_matrices <- setdiff(list_files, df$name) #Files that have no patients
-  print(length(discarded_matrices))
-  cat(paste("Number of patients without matrices...\n"))
-  discarded_patients <- setdiff(df$name, list_files) #patients that have no file
-  print(length(discarded_patients))
-  discarded_data <- c(discarded_matrices, discarded_patients)
+ 
+  if(verbose){
+    cat(paste("Cheking data...\n"))
+    cat(paste("Matrices without patients...\n"))  
+    discarded_matrices <- setdiff(list_files, df$name) #Files that have no patients
+    print(length(discarded_matrices))
+    cat(paste("Number of patients without matrices...\n"))
+    discarded_patients <- setdiff(df$name, list_files) #patients that have no file
+    print(length(discarded_patients))
+    discarded_data <- c(discarded_matrices, discarded_patients)
+  }else{
+    discarded_matrices <- setdiff(list_files, df$name)
+    discarded_patients <- setdiff(df$name, list_files)
+    discarded_data <- c(discarded_matrices, discarded_patients)
+  }
   
   list_files <- list_files[!(list_files %in% discarded_data)] # final file list
   return(list_files)
@@ -44,8 +50,18 @@ list_of_files <- function(dataDIR, matricesDIR){
 # RETURN a list of matrices
 
 load_data <- function(dataDIR, matricesDIR){
-  file_list <- list_of_files(dataDIR, matricesDIR) #obtain file list
-  
+  # Obtain list of files if from original folders we filters, else directly from folder
+  if(matricesDIR == "subjects_FA/"){
+    file_list <- filter_patients(FADIR, FA_append, clinical, verbose = F)
+  }else if(matricesDIR == "subjects_fMRI/"){
+    file_list <- filter_patients(fMRIDIR, fMRI_append, clinical, verbose = F)
+  }else if(matricesDIR == "subjects_GM/"){
+    file_list <- filter_patients(GMDIR, GM_append, clinical, verbose = F)
+  }else {
+    file_list <- list_of_files(dataDIR, matricesDIR) #obtain file list
+    
+  }
+
   tables <- vector("list", length = length(file_list)) #allocate space in a vector list
   
   #Load matrices
@@ -56,6 +72,7 @@ load_data <- function(dataDIR, matricesDIR){
   return(tables)
   
 }
+
 
 ##########################################################################################################################
 
@@ -285,6 +302,31 @@ load_graphs <- function(matricesDIR, clinical_data,  normalization = TRUE) {
 
 ##########################################################################################################################
 
+######## function to obtain range and histogram of values
+#INPUT list of matrices dataframes
+# returns a histogram graph while prints out range of values of matrices
+
+range_values <- function(table_list){
+  all_values <- unlist(table_list) 
+  range_val <- range(all_values) #Obtain range
+  
+  print(paste("Minimun values is", range_val[1], "and maximum is", range_val[2]))
+  
+  #Histogram
+  network_name <- deparse(substitute(table_list))
+  network_name <- strsplit(network_name, "_")[[1]][1]
+  
+  df_all_values <- data.frame(values = all_values)
+  
+  p <- ggplot(df_all_values, aes(x = values)) + 
+    geom_histogram(bins = 30, color = "black", fill = "navy") +
+    labs(x = "Values", y = "Count", title = paste("Histogram of", network_name,"connections"))
+  
+  return(p)
+}
+
+##########################################################################################################################
+
 ### Function to apply SVD normalization
 ## INPUT matrix to normlaize
 ## OUTPUTS normalized matrices
@@ -356,6 +398,7 @@ statistical_test <- function(df, name){
   } 
   
 }
+
 
 
 
