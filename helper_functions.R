@@ -359,7 +359,7 @@ statistical_test <- function(df, name){
 
   PwMS <- df[df$controls_ms == "PwMS", ]
   HS <- df[df$controls_ms == "HS", ]
-
+  val <- df[, c(name)]
   
   #Check for normality
   
@@ -379,9 +379,6 @@ statistical_test <- function(df, name){
   }
   
 
-  
-  
-  
   if(PwMS_p < 0.05 | HS_p < 0.05){
     #we cannot assume normal distribution, for name
     #Perform Whitney U test
@@ -390,8 +387,15 @@ statistical_test <- function(df, name){
 
   }else{
     #Can assume normality for name
+    #Check for homoscedasticity (we could use a different test)
+    
+    bart <-bartlett.test( val ~ controls_ms, data = df)
+    var <- FALSE
+    if(bart$p.value > 0.05){
+    var <- TRUE  
+    }
     #Perform t test
-    test <- t.test(PwMS[, c(name)], HS[, c(name)], PAIRED = FALSE)
+    test <- t.test(PwMS[, c(name)], HS[, c(name)], PAIRED = FALSE, var.equal = var)
       return(test$p.value)
 
     
