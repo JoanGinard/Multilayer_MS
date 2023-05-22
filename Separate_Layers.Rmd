@@ -177,8 +177,11 @@ p7 <- individual_boxplot(df, "density")
 
 
 
-p1 + p2 + p3 + p4 +p5 + p6 +p7 +
+p <- p1 + p2 + p3 + p4 +p5 + p6 +p7 +
   plot_layout(ncol = 3, nrow = 3, guides = "collect")
+
+ggsave(filename = "images/FA_sep_layers_boxplot.png", plot = p, width = 10, height = 7, dpi = 300)
+p
 
 ```
 We can observe that some measures are fairly similar for both HS and PWMS. Additionally, it may be the case that certain measures might be strongly correlated.
@@ -205,9 +208,11 @@ p6 <- individual_boxplot(df, "strength")
 p7 <- individual_boxplot(df, "density")
 
 
-p1 + p2 + p3 + p4 +p5 + p6 +p7 +
+p <- p1 + p2 + p3 + p4 +p5 + p6 +p7 +
   plot_layout(ncol = 3, nrow = 3, guides = "collect")
 
+ggsave(filename = "images/GM_sep_layers_boxplot.png", plot = p, width = 10, height = 7, dpi = 300)
+p
 
 
 ```
@@ -230,8 +235,11 @@ p5 <- individual_boxplot(df, "modularity")
 p6 <- individual_boxplot(df, "strength")
 p7 <- individual_boxplot(df, "density")
 
-p1 + p2 + p3 + p4 +p5 + p6 +p7 +
+p <- p1 + p2 + p3 + p4 +p5 + p6 +p7 +
   plot_layout(ncol = 3, nrow = 3, guides = "collect")
+
+ggsave(filename = "images/fMRI_sep_layers_boxplot.png", plot = p, width = 10, height = 7, dpi = 300)
+p
 
 ```
 This results are more similar to FA graphs. In this case we observe some very similar values, while others show noticeable differences.
@@ -277,9 +285,15 @@ correlations <- clinical_data %>% select(all_of(stat_cols)) %>% cor()
 
 corrplot::corrplot(correlations, method = 'number', tl.col = "black")
 
-
 ```
 We can appreciate how there are high correlations, positive or negative, between most measurements that correspond to the same layer.
+
+*save image*
+```{r}
+png("images/corr_sep_layers_global.png")
+corrplot::corrplot(correlations, method = 'number', tl.col = "black")
+dev.off()
+```
 
 ## Pairwise t test using Bonferroni
 In our clinical data, PwMS are categorized into multiple groups (mstype). In this scenario, we can use the t-test with Bonferroni correction to determine if any of the measures also exhibit differences.
@@ -420,6 +434,8 @@ cat("\n")
 
 
 ```
+
+
 ## How many of each layer, how many of each measure and how many of each node
 ```{r}
 

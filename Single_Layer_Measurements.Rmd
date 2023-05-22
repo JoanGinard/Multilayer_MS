@@ -178,10 +178,11 @@ p5 <- individual_boxplot(df, "modularity")
 p6 <- individual_boxplot(df, "strength")
 p7 <- individual_boxplot(df, "density")
 
-p1 + p2 + p3 + p4 +p5 + p6 +p7 +
+p <- p1 + p2 + p3 + p4 +p5 + p6 +p7 +
   plot_layout(ncol = 3, nrow = 3, guides = "collect")
 
-
+ggsave(filename = "images/FA_single_layers_boxplot.png", plot = p, width = 10, height = 7, dpi = 300)
+p
 ```
 If we compare this case to the non-normalized one, we can appreciate differences between the two cases are minimal in most measurements.
 
@@ -204,11 +205,11 @@ p5 <- individual_boxplot(df, "modularity")
 p6 <- individual_boxplot(df, "strength")
 p7 <- individual_boxplot(df, "density")
 
-p1 + p2 + p3 + p4 +p5 + p6 +p7 +
+p <- p1 + p2 + p3 + p4 +p5 + p6 +p7 +
   plot_layout(ncol = 3, nrow = 3, guides = "collect")
 
-
-
+ggsave(filename = "images/GM_single_layers_boxplot.png", plot = p, width = 10, height = 7, dpi = 300)
+p
 ```
 As it also happened with non-normalized case, in this scenario we have four measurement that virtually equal and constant for both HS and PwMs.
 
@@ -228,8 +229,11 @@ p5 <- individual_boxplot(df, "modularity")
 p6 <- individual_boxplot(df, "strength")
 p7 <- individual_boxplot(df, "density")
 
-p1 + p2 + p3 + p4 +p5 + p6 +p7 +
+p <- p1 + p2 + p3 + p4 +p5 + p6 +p7 +
   plot_layout(ncol = 3, nrow = 3, guides = "collect")
+
+ggsave(filename = "images/fMRI_single_layers_boxplot.png", plot = p, width = 10, height = 7, dpi = 300)
+p
 
 ```
 
@@ -280,6 +284,13 @@ corrplot::corrplot(correlations, method = 'number')
 
 ```
 In this case correlations (except one) do not seem as strong as in the normalized case.
+
+*save image*
+```{r}
+png("images/corr_single_layers_global.png")
+corrplot::corrplot(correlations, method = 'number', tl.col = "black")
+dev.off()
+```
 
 ## Pairwise t test using Bonferroni
 In our clinical data, PwMS are categorized into multiple groups (mstype). In this scenario, we can use the t-test with Bonferroni correction to determine if any of the measures also exhibit differences.

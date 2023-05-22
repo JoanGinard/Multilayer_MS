@@ -132,10 +132,12 @@ Histogram of couplings strength, using the mean
 x <- unlist(layerCouplingStrength_list)
 x_df <- data.frame(values = x, controls_ms = clinical_data$controls_ms)
 
-ggplot(x_df, aes(x = values, fill = controls_ms)) +
+p <- ggplot(x_df, aes(x = values, fill = controls_ms)) +
   geom_histogram(bins = 30)+
   labs(x = "Values of weight connections", title = "Histogram of weights")
 
+ggsave(filename = "images/Mean_couplings_hist.png", plot = p, width = 10, height = 7, dpi = 300)
+p
 
 
 ```
@@ -263,7 +265,7 @@ print(stat_cols_2)
 In next step we will check if we have correlations between those measurement
 
 
-```{r, fig.height= 14, fig.height= 14}
+```{r, fig.height= 16, fig.height= 16}
 library(tidyverse)
 multi_layer_df <- cbind(clinical_data[, c("id", "controls_ms", "mstype", "age", "sex", "dd", "edss")],
                              df[ , stat_cols])
@@ -271,12 +273,22 @@ multi_layer_df <- cbind(clinical_data[, c("id", "controls_ms", "mstype", "age", 
 correlations <- multi_layer_df %>% select(all_of(stat_cols)) %>% cor()
 
 corrplot::corrplot(correlations, method = 'number', tl.col = "black", addCoef.col = 1,  
-         number.cex = 0.8)
+         number.cex = 0.9, tl.cex = 1.3)
 
 
 ```
 With few exceptions, correlations between measurements are not specially high.
 Those we pass bonferroni test, are not highly correlated either.
+
+
+*save image*
+```{r}
+png("images/corr_mult_layers_local.png")
+corrplot::corrplot(correlations, tl.col = "black",  tl.cex = 0.8)
+dev.off()
+```
+
+
 
 ```{r}
 
@@ -288,6 +300,13 @@ correlations <- multi_layer_df %>% select(all_of(stat_cols_2)) %>% cor()
 corrplot::corrplot(correlations, method = 'number', tl.col = "black")
 
 
+```
+
+*save image*
+```{r}
+png("images/corr_mult_layers_local_bonf.png")
+corrplot::corrplot(correlations, method = 'number', tl.col = "black")
+dev.off()
 ```
 
 
