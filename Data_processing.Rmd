@@ -70,11 +70,12 @@ same_order(GM_files, GM_append, clinical)
 same_order(fMRI_files, fMRI_append, clinical)
 ```
 
-##FA MATRICES PROCESSING
+## FA MATRICES PROCESSING
 
-We preserve connections based on the following criteria:
+We preserve connections based on the following criteria: 
 
 A. PATIENTS, we maintain the value if the weight is greater than 0.1.
+
 B. PATIENTS, we also maintain the connection if it is present in at least 60% (more than 10) of the healthy subjects
 
 We create an "adjacency matrix" whose values are the number of connections present in the healthy subjects.
@@ -146,7 +147,7 @@ p1
 ```
 
 
-##GM MATRICES PROCESSING
+## GM MATRICES PROCESSING
 
 Process in GM filtering is the same as in FA, so we repeat same steps in, this case in one chunk of code
 

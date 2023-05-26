@@ -53,7 +53,7 @@ clinical_data$mstype <- factor(clinical_data$mstype,
 ```
 
 
-####AGE
+#### AGE
 ```{r}
 
 age_mean <- mean(clinical_data$age)
@@ -75,9 +75,7 @@ clinical_data %>%
             age_std = sd(age))
 
 ```
-```{r}
-min
-```
+
 
 ```{r}
 p1 <- ggplot(clinical_data, aes(x = age, fill = as.factor(controls_ms))) +

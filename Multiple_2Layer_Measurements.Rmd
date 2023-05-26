@@ -43,7 +43,7 @@ names_file <- "mindboggle_ROIs.txt"
 
 ```
 
-#Load clinical data
+## Load clinical data
 
 ```{r}
 
@@ -68,7 +68,7 @@ clinical_data$mstype <- factor(clinical_data$mstype,
                                labels = c("HS", "RRMS", "SPMS", "PPMS"))
 ```
 
-#Load vertex names
+## Load vertex names
 
 ```{r}
 vertex_names <- read.table(file.path(dataDIR, names_file), skip = 1)[, 2]
@@ -79,7 +79,7 @@ vertex_names <- read.table(file.path(dataDIR, names_file), skip = 1)[, 2]
 # layered_vertex_names <- c(FA_vertex_names, GM_vertex_names, fMRI_vertex_names)
 ```
 
-#Load matrices We import as matrix form, as we will need it for to build suparadjacency matrix in muxViz
+### Load matrices We import as matrix form, as we will need it for to build suparadjacency matrix in muxViz
 
 ```{r}
 FA_matrices <- load_as_matrix(dataDIR, FADIR)
@@ -131,11 +131,12 @@ x <- unlist(layerCouplingStrength_list)
 x_df <- data.frame(values = x, controls_ms = clinical_data$controls_ms)
 
 p <- ggplot(x_df, aes(x = values, fill = controls_ms)) +
-  geom_histogram(bins = 30)+
-  labs(x = "Values of weight connections", title = "Histogram of weights 2 layers")
+  geom_histogram(position = "identity", bins = 30, color = "black", alpha = 0.6)+
+  labs(x = "Values of weight connections", title = "Weights distribution in 'average interlink' 2 layers")
 
 ggsave(filename = "images/Mean_couplings_hist_2layers.png", plot = p, width = 10, height = 7, dpi = 300)
 p
+
 
 ```
 

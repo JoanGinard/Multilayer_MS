@@ -49,7 +49,7 @@ names_file <- "mindboggle_ROIs.txt"
 ```
 
 
-#Load clinical data
+### Load clinical data
 ```{r}
 
 clinical_data <- read.csv(file.path(dataDIR, clinic_file))[, -1] #with -1 we avoid loading index column
@@ -73,14 +73,14 @@ clinical_data$mstype <- factor(clinical_data$mstype,
                                labels = c("HS", "RRMS", "SPMS", "PPMS"))
 ```
 
-#Load vertex names
+### Load vertex names
 
 ```{r}
 vertex_names <- read.table(file.path(dataDIR, names_file), skip = 1)[, 2]
 ```
 
 
-#Load graphs without svd normalization
+### Load graphs without svd normalization
 ```{r}
 FA_graphs <- load_graphs(FADIR, clinical_data, normalization = FALSE)
 GM_graphs <- load_graphs(GMDIR, clinical_data, normalization = FALSE)
@@ -146,9 +146,9 @@ head(df_summary)
 ```
 
 
-# Boxplots comparing measures
+## Boxplots comparing measures
 
-#FA
+## FA
 
 ```{r}
 cols_measures <-  c("controls", "diameter", "efficiency", "mean_path_length", "transitivity", "modularity", "strength", "density" )
@@ -189,7 +189,7 @@ We can observe that some measures are fairly similar for both HS and PWMS. Addit
 As we are going to discard non statistically significant measurements, we save for later to examine correlations.
 
 
-#GM
+## GM
 
 
 ```{r}
@@ -219,7 +219,7 @@ p
 In this case, we observe that four measures have basically same value for HS and for PWMS and they seem to have constant values, while other three also seem quite similar.
 
 
-#fMRI
+## fMRI
 
 ```{r}
 df <- clinical_data[, grepl("fMRI_", names(clinical_data))]
@@ -244,7 +244,7 @@ p
 ```
 This results are more similar to FA graphs. In this case we observe some very similar values, while others show noticeable differences.
 
-#Statistical measures 
+# Statistical measures 
 
 ## Normality and Statistical difference
 Before we assess the statistical differences in our measurements, it's important to determine if the data distribution is normal. While we could use a QQ-plot for this purpose, due to the large number of variables (7 graph measures across 3 layers), we will utilize the Shapiro-Wilk test. Following this, we will examine whether there's a statistically significant difference between groups. Depending on the normality of the variables, we will use either the t-test or the Mann-Whitney U test.
@@ -326,7 +326,7 @@ It seems that global measures have difficulties differentiating between the msty
 SPMS and PPMS
 
 
-# Local_measures
+# Local measures
 
 Local measures we are performing are:
 

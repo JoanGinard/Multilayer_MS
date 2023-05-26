@@ -49,7 +49,7 @@ names_file <- "mindboggle_ROIs.txt"
 ```
 
 
-#Load clinical data
+## Load clinical data
 ```{r}
 
 clinical_data <- read.csv(file.path(dataDIR, clinic_file))[, -1] #with -1 we avoid loading index column
@@ -74,14 +74,14 @@ clinical_data$mstype <- factor(clinical_data$mstype,
 ```
 
 
-#Load vertex names
+## Load vertex names
 
 ```{r}
 vertex_names <- read.table(file.path(dataDIR, names_file), skip = 1)[, 2]
 ```
 
 
-#Load graphs with svd normalization
+## Load graphs with svd normalization
 
 If we aim to 'integrate' all layers into a single multi-layer measurement, it is essential to normalize the weights so they can be merged into a singular network. We will apply SVD normalization, as elucidated in Mandke, Meier et al. (2018). It is also interesting to point out it also used in Pontillo, Prados et al. 2022.
 
@@ -149,9 +149,9 @@ head(df_summary)
 
 
 
-# Boxplots comparing measures
+## Boxplots comparing measures
 
-#FA
+## FA
 
 ```{r}
 cols_measures <-  c("controls", "diameter", "efficiency", "mean_path_length", "transitivity", "modularity", "strength", "density" )
@@ -187,7 +187,7 @@ p
 If we compare this case to the non-normalized one, we can appreciate differences between the two cases are minimal in most measurements.
 
 
-#GM
+## GM
 
 
 ```{r}
@@ -213,7 +213,7 @@ p
 ```
 As it also happened with non-normalized case, in this scenario we have four measurement that virtually equal and constant for both HS and PwMs.
 
-#fMRI
+## fMRI
 
 ```{r}
 df <- clinical_data[, grepl("fMRI_", names(clinical_data))]
@@ -239,7 +239,7 @@ p
 
 In this case, normalized and non normalized situations exhibit similar behaviour. It is worth noting that there seem to be more outliers (or at least more "extreme") in graph efficiency
 
-#Statistical measures 
+# Statistical measures 
 
 ## Normality and Statistical difference
 Before we assess the statistical differences in our measurements, it's important to determine if the data distribution is normal. While we could use a QQ-plot for this purpose, due to the large number of variables (7 graph measures across 3 layers), we will utilize the Shapiro-Wilk test. Following this, we will examine whether there's a statistically significant difference between groups. Depending on the normality of the variables, we will use either the t-test or the Mann-Whitney U test.
@@ -321,7 +321,7 @@ print(stat_cols_2)
 ```
 Only one measure passes this test. Interestingly is the only one we had from the FA layer
 
-# Local_measures
+# Local measures
 
 Local measures we are performing are:
 
