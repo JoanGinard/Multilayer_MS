@@ -16230,7 +16230,7 @@ It can be considered as a quite typical characteristic of ensemble and boosting 
 
 <span class="n">plt</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">"Histogram of Mean Test Scores in Grid Search</span><span class="se">\n</span><span class="s2"> Beware of axis range"</span><span class="p">,</span> <span class="n">fontsize</span> <span class="o">=</span> <span class="mi">20</span><span class="p">)</span>
 
-
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">"images/sep_lay_hist_binary.png"</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">'tight'</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 
@@ -16304,7 +16304,7 @@ class="
 <span class="n">plot_confusion_matrix</span><span class="p">(</span><span class="n">XGB_confMat</span><span class="p">,</span> <span class="n">le_name_mapping</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="s2">"XGBoost"</span><span class="p">)</span>
 
 <span class="n">plt</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">"Confusion Matrices"</span><span class="p">,</span> <span class="n">fontsize</span> <span class="o">=</span> <span class="mi">20</span><span class="p">)</span>
-
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">"images/sep_lay_confmat_binary.png"</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">'tight'</span><span class="p">)</span>
 
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
@@ -16493,6 +16493,7 @@ class="
 <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
 <span class="n">sns</span><span class="o">.</span><span class="n">barplot</span><span class="p">(</span><span class="n">x</span> <span class="o">=</span> <span class="n">sorted_imp_rf</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">sorted_imp_rf</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">'Feature importace Random Forest Model'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">"images/sep_RF_FeatIMP_binary.png"</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">'tight'</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 
@@ -16544,6 +16545,7 @@ class="
 <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
 <span class="n">sns</span><span class="o">.</span><span class="n">barplot</span><span class="p">(</span><span class="n">x</span> <span class="o">=</span> <span class="n">sorted_imp_XGB</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">sorted_imp_XGB</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">'Feature importace XGBOOST'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">"images/sep_XGB_FeatIMP_binary.png"</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">'tight'</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 
@@ -17088,7 +17090,7 @@ C:\Users\joang\anaconda3\lib\site-packages\sklearn\metrics\_classification.py:13
 <span class="n">plot_hist_GridSearch</span><span class="p">(</span><span class="n">GridSearch_XGB</span><span class="o">.</span><span class="n">cv_results_</span><span class="p">[</span><span class="s2">"mean_test_score"</span><span class="p">],</span> <span class="s2">"XGBoost"</span><span class="p">)</span>
 
 <span class="n">plt</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">"Histogram of Mean Test Scores in Grid Search</span><span class="se">\n</span><span class="s2"> Beware of axis range"</span><span class="p">,</span> <span class="n">fontsize</span> <span class="o">=</span> <span class="mi">20</span><span class="p">)</span>
-
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">"images/sep_lay_hist_multi.png"</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">'tight'</span><span class="p">)</span>
 
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
@@ -17163,7 +17165,7 @@ class="
 <span class="n">plot_confusion_matrix</span><span class="p">(</span><span class="n">XGB_confMat</span><span class="p">,</span> <span class="n">le_name_mapping</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="s2">"XGBoost"</span><span class="p">)</span>
 
 <span class="n">plt</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">"Confusion Matrices"</span><span class="p">,</span> <span class="n">fontsize</span> <span class="o">=</span> <span class="mi">20</span><span class="p">)</span>
-
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">"images/sep_lay_confmat_multi.png"</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">'tight'</span><span class="p">)</span>
 
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
@@ -17342,6 +17344,7 @@ class="
 <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
 <span class="n">sns</span><span class="o">.</span><span class="n">barplot</span><span class="p">(</span><span class="n">x</span> <span class="o">=</span> <span class="n">sorted_imp_rf</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">sorted_imp_rf</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">'Feature importace Random Forest Model'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">"images/sep_RF_FeatIMP_Multi.png"</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">'tight'</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 
@@ -17393,6 +17396,7 @@ class="
 <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
 <span class="n">sns</span><span class="o">.</span><span class="n">barplot</span><span class="p">(</span><span class="n">x</span> <span class="o">=</span> <span class="n">sorted_imp_xgb</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">sorted_imp_xgb</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">'Feature importace Random Forest Model'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">"images/sep_XGB_FeatIMP_Multi.png"</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">'tight'</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 
