@@ -1,7 +1,7 @@
 # Multilayer_MS
 Multilayer approach to diagnose and classify Multiple Sclerosis phenotypes using graph theory measures
 
-![Flow_image](images/Flow_files_2.png)
+![Flow_image](images/Flow_files_3.png)
 
 ## 1.	“Helper” files
 During the process with R I found myself reusing some pieces of code, so I decided include those functions in two separate files:
@@ -37,9 +37,9 @@ This phase is comprised of these files:
 1.	*Separate_layers_results.ipynb* -  utilizes data from “Separate_Layers.Rmd”
 2.	*Multilayer_network_Results.ipynb* -  utilizes data from “Single_Layer_Measurements.Rmd” and “Multiple_Layer_Measurements.Rmd”
 3.	*Multilayer_network_2layer_Results.ipynb* – employs data from “Single_Layer_Measurements.Rmd” and “Multiple_2Layer_Measurements.Rmd”
-4.	Feature_importance.ipynb
+4.	Feature_importance: *"Separate_Layers._Permutation_Importance_HS_PwMS.ipynb", "2-multilayer._Permutation_Importance_HS_PwMS.ipynb", "3-multilayer._Permutation_Importance_HS_PwMS.ipynb"*
 
-Files 1, 2 and 3 apply machine learning models to their respective datasets, while file 4 is dedicated to investigating feature importance in the multilayer case.  Like in previous phase, files 1,2 and 3 share code so they can be used as standalone files.
+Files 1, 2 and 3 apply machine learning models to their respective datasets, while 4 is dedicated to investigating feature importance in HS vs PwMS in RF and XGBoost (it comprises 3 files) .  Like in previous phase, files 1,2 and 3 share code so they can be used as standalone files.
 
 ## 5.	Other files
 Here we include files that were developed specifically purpose of generating tables, graphs or data summaries.
