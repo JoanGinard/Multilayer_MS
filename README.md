@@ -1,7 +1,7 @@
 # Multilayer_MS
 Multilayer approach to diagnose and classify Multiple Sclerosis phenotypes using graph theory measures
 
-![Flow_image](images/Flow_files_3.png)
+![Flow_image](images/Flow_files3.png)
 
 ## 1.	“Helper” files
 During the process with R I found myself reusing some pieces of code, so I decided include those functions in two separate files:
