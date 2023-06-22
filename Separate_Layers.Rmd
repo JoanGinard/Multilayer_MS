@@ -1,5 +1,5 @@
 ---
-title: "Single layer measurements"
+title: "Separate layer measurements"
 author: "Joan Ginard"
 date: '`r format(Sys.time(), "%d de %B, %Y")`'
 output: html_document
@@ -191,6 +191,21 @@ As we are going to discard non statistically significant measurements, we save f
 
 ## GM
 
+GM layer has one prominent outlier. All data has the same value for density (1.0), modularity (0.0) and transitivity(1.0), so we impute the values that all the res present.
+
+In the case of efficency it present a very different value from the rest. In this case we impute the mean of the rest of values.
+```{r}
+idx_outlier <- which(clinical_data$`GM_gl-transitivity`<1)
+
+clinical_data$GM_density[idx_outlier] <- 1.0
+clinical_data$`GM_gl-modularity`[idx_outlier] <- 0.0
+clinical_data$`GM_gl-transitivity`[idx_outlier] <- 1.0
+
+efficiency_vector <- clinical_data$`GM_gl-efficiency`[-idx_outlier] #We take values, except the otlier
+clinical_data$`GM_gl-efficiency`[idx_outlier] <- mean(efficiency_vector) # Impute the mean
+
+clinical_data$`GM_gl-modularity`[abs(clinical_data$`GM_gl-modularity`) < 1e-10] <- 0.0
+```
 
 ```{r}
 
@@ -261,6 +276,7 @@ for(col in cols){
   vector_p <- c(vector_p, res)
 }
 
+vector_p[is.nan(vector_p)] <- 1.0
 
 df_summary$p.value <- vector_p
 stat_cols <- df_summary$measurement[df_summary$p.value < 0.05]
@@ -437,6 +453,21 @@ cat("\n")
 
 
 ## How many of each layer, how many of each measure and how many of each node
+
+```{r}
+recap <- do.call(rbind, strsplit(stat_cols_loc_2, "_"))
+
+recap <- data.frame(recap)
+colnames(recap) <- c("LAYER", "Measure", "Node")
+
+recap1 <- recap %>%
+  group_by(LAYER, Measure) %>%
+  summarise(total = n())
+
+print(recap1)
+```
+
+
 ```{r}
 
 split_names <- lapply(stat_cols_loc_2, function(x) strsplit(x, split = "_")[[1]])
